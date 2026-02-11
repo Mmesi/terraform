@@ -6,23 +6,27 @@ on:
       - main
 
 jobs:
-  tflint:
-    runs-on: ubuntu-22.04
+  build:
+    runs-on: ubuntu-22.04                    # similar to "image" in GitLab
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - run: echo "This is a build step"
 
-      - uses: terraform-linters/setup-tflint@v1
-        name: Setup TFLint
-        with:
-          tflint_version: latest
+  test:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - run: echo "This is a test step"
 
-      - name: Run TFLint
-        run: tflint --chdir=aws -f json > tflint-output.json
+  integration:
+    runs-on: ubuntu-22.04
+    needs: test
+    steps:
+      - run: echo "This is an integration step"
+      - run: exit 1
         continue-on-error: true
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: TFLint
-          path: tflint-output.json
-        if: always()                        # what is this for?
+  prod:
+    runs-on: ubuntu-22.04
+    needs: integration
+    steps:
+      - run: echo "This is a deploy step"
